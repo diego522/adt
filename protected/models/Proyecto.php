@@ -39,6 +39,7 @@
  * @property integer $calif_defensa_sala
  * @property integer $calif_guia
  * @property integer $calif_informante
+ * @property integer $carta_aceptacion
  * @property integer $financiado
  *
  * The followings are the available model relations:
@@ -90,7 +91,7 @@ class Proyecto extends CActiveRecord {
             array('fecha_creacion, id_propuesta', 'required'),
             array('estado_avance,estado_actual,fecha_fin,fecha_inicio,prof_guia', 'required', 'on' => 'actualiza'),
             array('estado_actual, prof_guia, prof_informante, prof_sala, id_propuesta', 'numerical', 'integerOnly' => true),
-            array('apoyo_disenador,financiado,tipo_financiamiento,fecha_entrega_empaste,fecha_entrega_cd,carta_compromiso,comentario_guia,comentario_informante,fecha_reprobacion,comentario_reprobacion,', 'safe'),
+            array('apoyo_disenador,carta_aceptacion,financiado,tipo_financiamiento,fecha_entrega_empaste,fecha_entrega_cd,carta_compromiso,comentario_guia,comentario_informante,fecha_reprobacion,comentario_reprobacion,', 'safe'),
             array('prof_sala', 'required', 'on' => 'creaDefensa'),
             array('fecha_entrega_a_informante', 'required', 'on' => 'informateRetiraProyecto'),
             array('fecha_max_rev_informante,prof_informante', 'required', 'on' => 'asignaInformante'),
@@ -144,6 +145,7 @@ class Proyecto extends CActiveRecord {
             'fecha_reprobacion' => 'Fecha de la reprobación',
             'carta_compromiso' => 'Carta de Compromiso',
             'apoyo_disenador' => 'Apoyo de Diseñador',
+            'carta_aceptacion' => 'Carta de Aceptación',
             'estado_actual' => 'Estado Actual',
             'estado_avance' => 'Etapa de Avance',
             'fecha_creacion' => 'Fecha de Creacion',

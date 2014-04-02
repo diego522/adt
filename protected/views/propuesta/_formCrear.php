@@ -58,7 +58,7 @@ Yii::app()->clientScript->registerScriptFile(
     <?php if (!$model->isNewRecord&&Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))) { ?>
         <div class="row">
             <?php echo $form->labelEx($model, 'usuario_creador'); ?>
-            <?php echo $form->dropDownList($model, 'usuario_creador', CHtml::listData(Usuario::model()->findAll('id_rol in (' . Rol::$PROFESOR . ',' . Rol::$ADMINISTRADOR . ',' . Rol::$SUPER_USUARIO . ') and campus=' . Yii::app()->user->getState('campus') . ' order by nombre ASC'), 'id_usuario', 'nombre'), array('empty' => 'Ninguno')); ?> 
+            <?php echo $form->dropDownList($model, 'usuario_creador', CHtml::listData(Usuario::model()->findAll('id_rol in (' . Rol::$PROFESOR . ',' . Rol::$ADMINISTRADOR . ',' . Rol::$SUPER_USUARIO . ','.Rol::$ALUMNO.') and campus=' . Yii::app()->user->getState('campus') . ' order by nombre ASC'), 'id_usuario', 'nombre'), array('empty' => 'Ninguno')); ?> 
             <?php echo $form->error($model, 'usuario_creador'); ?>
         </div>
     <?php } ?>

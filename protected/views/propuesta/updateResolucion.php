@@ -188,7 +188,7 @@ $this->widget('zii.widgets.CDetailView', array(
     <?php if ($model->estado == Estado::$PROPUESTA_ACEPTADA_CON_OBSERVACIONES_CON_PRESENTACION) { ?>
         <div class="row">
             <?php echo $form->labelEx($model, 'estado_presentacion'); ?>
-            <?php echo $form->dropDownList($model, 'estado_presentacion', CHtml::listData(Estado::model()->findAll('id_tipo_estado=' . TipoEstado::$PRESENTACION_PROPUESTA . ' order by orden ASC'), 'id_estado', 'nombre'), array('empty' => 'Seleccione')); ?> 
+            <?php echo $form->dropDownList($model, 'estado_presentacion', CHtml::listData(Estado::model()->findAll('id_tipo_estado=' . TipoEstado::$PRESENTACION . ' order by orden ASC'), 'id_estado', 'nombre'), array('empty' => 'Seleccione')); ?> 
             <?php echo $form->error($model, 'estado_presentacion'); ?>
         </div>
 

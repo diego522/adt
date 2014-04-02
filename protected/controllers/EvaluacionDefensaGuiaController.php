@@ -30,7 +30,7 @@ class EvaluacionDefensaGuiaController extends Controller {
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$ALUMNO, Rol::$ADMINISTRADOR, Rol::$PROFESOR,),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('create', 'update', 'createYRevision', 'updateYRevision'),
+                'actions' => array('create', 'update', 'createYRevision', 'updateYRevision','clonar'),
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR, Rol::$PROFESOR),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -59,9 +59,29 @@ class EvaluacionDefensaGuiaController extends Controller {
             $model->attributes = $_GET['EvaluacionDefensaGuia'];
             //var_dump($model->attributes);
             echo $model->obtienePromedio();
-         }
-        else
+        } else
             echo "0";
+    }
+
+    public function actionClonar($id_alumno_destino, $id_evaluacion) {
+        $modelOriginal = EvaluacionDefensaGuia::model()->findByPk($id_evaluacion);
+        if (isset($modelOriginal)) {
+            //proceso de clonado
+            $modelNuevo = new EvaluacionDefensaGuia;
+            $modelNuevo->attributes = $modelOriginal->attributes;
+            $modelNuevo->id_alumno = $id_alumno_destino;
+            $modelNuevo->isNewRecord=TRUE;
+            $modelNuevo->id_evaluacion_defensa_guia=NULL;
+            $modelNuevo->id_evaluacion_defensa_guia_padre=NULL;
+            if ($modelNuevo->save()) {
+                Yii::app()->user->setFlash('success', "Evaluación clonada correctamente ");
+            } else {
+                Yii::app()->user->setFlash('error', "La evaluación no puede ser clonada");
+            }
+        } else {
+            Yii::app()->user->setFlash('error', "La evaluación no puede ser clonada");
+        }
+        $this->redirect(array('proyecto/view', 'id' => $modelOriginal->id_proyecto));
     }
 
     /**

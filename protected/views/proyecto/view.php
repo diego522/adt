@@ -12,7 +12,7 @@ $this->menu = array(
     array('label' => 'Actualizar Proyecto', 'url' => array('update', 'id' => $model->id_proyecto), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))),
     array('label' => 'Solicitudes de aplazamiento', 'url' => array('solicitud/viewSolicitudes', 'id' => $model->id_proyecto), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ALUMNO, Rol::$PROFESOR, Rol::$ADMINISTRADOR))),
     array('label' => 'Notificar Finalización del proyecto (Profesor Guía)', 'url' => array('notificaGuia', 'id' => $model->id_proyecto), 'linkOptions' => array('id' => 'inline'), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$PROFESOR, Rol::$ADMINISTRADOR))),
-    array('label' => 'Asignar Profesor Infomante', 'url' => array('asignaProfeInformante', 'idp' => $model->id_proyecto), 'linkOptions' => array('id' => 'inline'), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))),
+    array('label' => 'Asignar Profesor Infomante', 'url' => array('asignaProfeInformante', 'idp' => $model->id_proyecto)/*, 'linkOptions' => array('id' => 'inline')*/, 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))),
     array('label' => 'Informante retira informe de proyecto', 'url' => array('InformanteRetiraProyecto', 'id' => $model->id_proyecto), 'linkOptions' => array('id' => 'inline'), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))),
     array('label' => 'Notificar Finalización de revisión (Profesor informante)', 'url' => array('notificaInformante', 'id' => $model->id_proyecto), 'linkOptions' => array('id' => 'inline'), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$PROFESOR, Rol::$ADMINISTRADOR))),
     array('label' => 'Notifica entrega de empaste y disco', 'url' => array('notificaEntregaDeEmpasteYDisco', 'id' => $model->id_proyecto), 'linkOptions' => array('id' => 'inline'), 'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR))),
@@ -58,12 +58,18 @@ $this->widget('CTabView', array(
             'view' => 'viewTab/viewTab7',
             'data' => array('model' => $model,),
         ),
+        'tab8' => array(
+            'title' => 'Carta de Aceptación',
+            'view' => 'viewTab/viewTab8',
+            'data' => array('model' => $model,),
+        ),
         'tab7' => array(
             'title' => 'Historial',
             'view' => 'viewTab/viewTab4',
-            'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR)),
-            'data' => array('tablaCambios' => $tablaCambios,),
+            //'visible' => Yii::app()->user->checkeaAccesoMasivo(array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR)),
+            'data' => array('model' => $model,'tablaCambios'=>$tablaCambios),
         ),
+        
     ),
 ));
 ?>

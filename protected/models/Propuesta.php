@@ -216,9 +216,9 @@ class Propuesta extends CActiveRecord {
         $arrayIDCoGuia = array();
         $condicion = "id_propuesta_padre IS NULL and (usuario_creador=" . Yii::app()->user->id . " or id_propuesta in (SELECT id_propuesta 
             FROM  proyecto 
-            WHERE  prof_sala =" . Yii::app()->user->id . "
+            WHERE  id_proyecto_padre is NULL and (prof_sala =" . Yii::app()->user->id . "
             OR  prof_informante =" . Yii::app()->user->id . "
-            OR  prof_guia =" . Yii::app()->user->id . ")";
+            OR  prof_guia =" . Yii::app()->user->id . "))";
         foreach ($arrayDeMisPropuestas as $inscripciones) {
             $arrayIDMisPropuestas[] = $inscripciones->id_propuesta;
         }
@@ -229,7 +229,7 @@ class Propuesta extends CActiveRecord {
             $arrayIDCoGuia[] = $co->id_propuesta;
         }
         if (count($arrayDeMisCoGuia) > 0) {
-            $condicion .= ' or id_propuesta in(' . implode(',', $arrayIDMisPropuestas) . ')';
+            $condicion .= ' or id_propuesta in(' . implode(',', $arrayDeMisCoGuia) . ')';
         }
         $condicion .=")";
 

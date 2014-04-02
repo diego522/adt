@@ -18,7 +18,7 @@
  */
 class Adjunto extends CActiveRecord {
 
-    public static $formatos_acepotados = array('pdf', 'doc', 'odt', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'bmp');
+    public static $formatos_acepotados = array('pdf', 'doc', 'odt', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'bmp','zip','rar','tar.gz','gz','7z');
     public static $formatos_imgagenes = array('jpg', 'jpeg', 'png', 'gif', 'bmp');
 
     /**

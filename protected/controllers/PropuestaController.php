@@ -98,6 +98,7 @@ class PropuestaController extends Controller {
                     $model->estado == Estado::$PROPUESTA_ACEPTADA_CON_OBSERVACIONES_SIN_PRESENTACION ||
                     $model->estado == Estado::$PROPUESTA_BORRADOR ||
                     $model->estado == Estado::$PROPUESTA_MODIFICADA ||
+                    $model->estado == 40 || //reformular
                     $model->estado == Estado::$PROPUESTA_PENDIENTE_DE_REVISION ||
                     $model->estado == Estado::$PROPUESTA_RECHAZADA) {
                 $tabla = $this->gridParticipantes($model);
@@ -108,7 +109,7 @@ class PropuestaController extends Controller {
                     'tablaCambios' => $tablaHistorial,
                 ));
             } else {
-                throw new CHttpException(500, 'No hay hay resultados');
+                throw new CHttpException(500, 'No hay resultados');
             }
         }
     }
@@ -321,8 +322,7 @@ class PropuestaController extends Controller {
                     Yii::app()->user->setFlash('error', "Problemas al guardar los datos");
                     $this->render('updateResolucion', array('model' => $modelRevision, 'tabla' => $tabla));
                 }
-            }
-            else
+            } else
                 $this->render('updateResolucion', array('model' => $modelRevision, 'tabla' => $tabla));
         } else {
             throw new CHttpException(500, 'La propuesta pertenece al historial, no puede ser modificada');
@@ -530,7 +530,8 @@ class PropuestaController extends Controller {
                                 if ($valueOut != NULL) {
                                     if ($valueOut > 0) {
                                         Yii::app()->user->setFlash('success', "Participante agregado correctamente");
-                                        foreach ($model->propuestaInscritas as $pro) {
+                                        $propuesta = Propuesta::model()->findByPk($id);
+                                        foreach ($propuesta->propuestaInscritas as $pro) {
                                             $this->SendMail('Propuesta inscrita', '<h2>Propuesta Inscrita</h2>
                                        Estimado(a) ' . $pro->usuario0->nombre . ', este correo le confirma la correcta inscripción de la propuesta.<br/>
                                            Ahora ya puede comenzar a completarla en la sección Propuestas>Mis Propuestas>Ver>Completar Propuesta. <br/>
@@ -621,8 +622,7 @@ class PropuestaController extends Controller {
         $procesoVigente = Proceso::obtieneProcesoActual();
         if ($procesoVigente) {
             $condicion = 'id_propuesta_padre IS NULL and id_proceso=' . $procesoVigente->primaryKey . ' and estado=' . Estado::$PROPUESTA_DISPONIBLE . ' and id_campus=' . Yii::app()->user->getState('campus');
-        }
-        else
+        } else
             $condicion = 'id_propuesta_padre IS NULL and id_proceso=0';
         $dataProvider = new CActiveDataProvider('Propuesta', array('criteria' => array('condition' => $condicion)));
         $this->render('index', array(
@@ -644,8 +644,7 @@ class PropuestaController extends Controller {
         $procesoVigente = Proceso::obtieneProcesoActual();
         if ($procesoVigente) {
             $condicion = 'id_propuesta_padre IS NULL and id_proceso=' . $procesoVigente->primaryKey . ' and estado=' . Estado::$PROPUESTA_DISPONIBLE . ' and id_campus=' . Yii::app()->user->getState('campus');
-        }
-        else
+        } else
             $condicion = 'id_propuesta_padre IS NULL and id_proceso=0';
         $dataProvider = new CActiveDataProvider('Propuesta', array('criteria' => array('condition' => $condicion)));
         $this->render('index', array(
@@ -797,10 +796,9 @@ class PropuestaController extends Controller {
         $model = Propuesta::model()->findByPk($id);
         if ($model != null) {
             if ($model->estado != Estado::$PROPUESTA_DISPONIBLE && !$this->esPropietario($model)) {
-                throw new CHttpException(403, 'Ud no está autorizado');
+                throw new CHttpException(403, ' Ud no está autorizado');
             }
-        }
-        else
+        } else
             throw new CHttpException(404, 'La petición no existe.');
         return $model;
     }
@@ -904,20 +902,21 @@ class PropuestaController extends Controller {
                 $propietario = TRUE;
             }
             //la propuesta tiene proyecto
-            if ($model->proyecto0) {
+            $proyectos=  Proyecto::model()->find('id_proyecto_padre is NULL and id_propuesta='.$model->id_propuesta);
+            if ($proyectos!=NULL) {
 
-                if ($model->proyecto0->prof_guia == Yii::app()->user->id) {
+                if ($proyectos->prof_guia == Yii::app()->user->id) {
                     $propietario = TRUE;
                 }
-                if ($model->proyecto0->prof_informante == Yii::app()->user->id) {
+                if ($proyectos->prof_informante == Yii::app()->user->id) {
                     $propietario = TRUE;
                 }
-                if ($model->proyecto0->prof_sala == Yii::app()->user->id) {
+                if ($proyectos->prof_sala == Yii::app()->user->id) {
                     $propietario = TRUE;
                 }
             }
         }
-        return Yii::app()->user->checkeaAccesoMasivo(array(Rol::$ADMINISTRADOR, Rol::$SUPER_USUARIO, Rol::$DISENADOR)) || $propietario;
+        return $propietario || Yii::app()->user->checkeaAccesoMasivo(array(Rol::$ADMINISTRADOR, Rol::$SUPER_USUARIO, Rol::$DISENADOR));
     }
 
     public function SendMail($asunto, $mensaje, $para) {
@@ -931,4 +930,3 @@ class PropuestaController extends Controller {
     }
 
 }
-

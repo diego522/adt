@@ -26,11 +26,11 @@ class ProyectoController extends Controller {
     public function accessRules() {
         return array(
             array('allow', // allow all users to perform 'index' and 'view' actions
-                'actions' => array('index', 'view', 'cartaDeCompromiso'),
+                'actions' => array('index', 'view', 'cartaDeCompromiso', 'Download', 'GuardaCartaAceptacion'),
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$ALUMNO, Rol::$PROFESOR, Rol::$ADMINISTRADOR, Rol::$DISENADOR),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('create', 'update', 'notificaGuia', 'repruebaProyecto', 'notificaInformante','generarActaDefensa', 'generarActaFinal'),
+                'actions' => array('create', 'update', 'notificaGuia', 'repruebaProyecto', 'notificaInformante', 'generarActaDefensa', 'generarActaFinal'),
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$PROFESOR, Rol::$ADMINISTRADOR),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -164,6 +164,53 @@ class ProyectoController extends Controller {
         $this->render('create', array(
             'model' => $model,
         ));
+    }
+
+    public function actionGuardaCartaAceptacion($id) {
+        $model = $this->loadModel($id);
+        $this->actionUploadFile($model);
+        $this->redirect(array('view', 'id' => $model->id_proyecto));
+    }
+
+    public function actionDownload($id) {
+        $adjuntoModel = Adjunto::model()->findByPk($id);
+        if ($adjuntoModel != null)
+            Yii::app()->request->sendFile($adjuntoModel->filename, file_get_contents($adjuntoModel->ruta), $adjuntoModel->filecontenttype);
+        else
+            $this->actionView($id);
+    }
+
+    /**
+     * 
+     * @param Proyecto $model
+     */
+    public function actionUploadFile($model) {
+//guardar archivo
+        $uploadedFileBN = CUploadedFile::getInstance($model, 'carta_aceptacion');
+        if ($uploadedFileBN != NULL) {
+            if (in_array($uploadedFileBN->extensionName, Adjunto::$formatos_acepotados)) {
+                $nombre = str_replace(" ", "_", "carta_aceptacion_" . $model->id_proyecto . "_" . "{$uploadedFileBN}");
+                $rutaCarpeta = Yii::app()->basePath . Yii::app()->params['ruta_adjunto'] . Yii::app()->params['adjuntos_propuesta'] . "/" . $model->id_propuesta;
+                if (!is_dir($rutaCarpeta)) {
+                    mkdir($rutaCarpeta);
+                }
+                $rutaArchivo = $rutaCarpeta . "/" . $nombre;
+                if ($uploadedFileBN->saveAs($rutaArchivo)) {
+                    $adjuntoModel = new Adjunto;
+                    $adjuntoModel->ruta = $rutaArchivo;
+                    $adjuntoModel->filecontenttype = $uploadedFileBN->getType();
+                    $adjuntoModel->filename = $nombre;
+                    $adjuntoModel->creador = Yii::app()->user->id;
+                    $adjuntoModel->save();
+                    $model->carta_aceptacion = $adjuntoModel->id_adjunto;
+                    $model->save();
+                } else {
+                    Yii::app()->user->setFlash('error', "problemas al guardar el archivo");
+                }
+            } else {
+                Yii::app()->user->setFlash('error', "Solo extensiones " . implode(',', Adjunto::$formatos_acepotados) . " son permitidas");
+            }
+        }
     }
 
     public function actionInformanteRetiraProyecto($id) {
@@ -311,7 +358,7 @@ class ProyectoController extends Controller {
                     if ($model->save()) {
                         $nombreAlumno = '<ul>';
                         foreach ($model->idPropuesta->propuestaInscritas as $pro) {
-                            $nombreAlumno.= "<li>".$pro->usuario0->nombre . "</li>";
+                            $nombreAlumno.= "<li>" . $pro->usuario0->nombre . "</li>";
                         }
                         $nombreAlumno .= '</ul>';
                         $correo = array();
@@ -370,7 +417,7 @@ class ProyectoController extends Controller {
                         $nombreAlumno = '<ul>';
                         $correos = array();
                         foreach ($model->idPropuesta->propuestaInscritas as $pro) {
-                            $nombreAlumno.= "<li>".$pro->usuario0->nombre . "</li>";
+                            $nombreAlumno.= "<li>" . $pro->usuario0->nombre . "</li>";
                         }
                         $nombreAlumno .= '</ul>';
                         //email para profesor guia 
@@ -432,7 +479,7 @@ class ProyectoController extends Controller {
                 if ($model->save()) {
                     $nombreAlumno = '<ul>';
                     foreach ($model->idPropuesta->propuestaInscritas as $pro) {
-                        $nombreAlumno.= "<li>".$pro->usuario0->nombre . "</li>";
+                        $nombreAlumno.= "<li>" . $pro->usuario0->nombre . "</li>";
                     }
                     $nombreAlumno .= '</ul>';
                     //email para profesor guia 
@@ -492,7 +539,7 @@ class ProyectoController extends Controller {
                     $model = Proyecto::model()->findByPk($model->id_proyecto);
                     $nombreAlumno = '<ul>';
                     foreach ($model->idPropuesta->propuestaInscritas as $pro) {
-                        $nombreAlumno.= "<li>".$pro->usuario0->nombre . "</li>";
+                        $nombreAlumno.= "<li>" . $pro->usuario0->nombre . "</li>";
                     }
                     $nombreAlumno .= '</ul>';
                     if ($model->profInformante != null) {
@@ -516,13 +563,13 @@ class ProyectoController extends Controller {
                     $this->redirect(array('proyecto/view', 'id' => $model->id_proyecto));
                 }
             }
-            $this->renderPartial('asignaInformante', array(
+            $this->render('asignaInformante', array(
                 'model' => $model,
-                    ), false, true);
+                    ));
         } else {
-            $this->renderPartial('error', array(
+            $this->render('error', array(
                 'mensaje' => "El proyecto se encuentra en un estado en el que no puede ser asignado el profesor informante.",
-                    ), false, true);
+                    ));
         }
     }
 
@@ -687,7 +734,7 @@ class ProyectoController extends Controller {
      * Lists all models.
      */
     public function actionIndex() {
-        $this->layout=NULL;
+        $this->layout = NULL;
         $model = new Proyecto('search');
         // $model->unsetAttributes();  // clear any default values
         if (isset($_GET['Proyecto'])) {
@@ -703,7 +750,7 @@ class ProyectoController extends Controller {
      * Manages all models.
      */
     public function actionAdmin() {
-        $this->layout=NULL;
+        $this->layout = NULL;
         $model = new Proyecto('search');
         // $model->unsetAttributes();  // clear any default values
         if (isset($_GET['Proyecto'])) {
@@ -730,8 +777,7 @@ class ProyectoController extends Controller {
             } else {
                 throw new CHttpException(403, 'Ud. no está autorizado');
             }
-        }
-        else
+        } else
             throw new CHttpException(404, 'La petición no existe');
     }
 
@@ -799,11 +845,21 @@ class ProyectoController extends Controller {
     }
 
     public function gridApoyoDesenador($data, $row) {
-        return $data->apoyo_disenador == '1' ? 'SI' : $data->apoyo_disenador=='3'?'PARCIAL': 'NO';
+        if($data->apoyo_disenador == '1')
+            return 'SI';
+        elseif($data->apoyo_disenador == '3')
+            return 'PARCIAL';
+        else return 'NO';
     }
+
     public function gridApoyoFinanciado($data, $row) {
-        return $data->financiado == '1' ? 'SI' : $data->financiado=='3'?'PARCIAL': 'NO';
+        if($data->financiado == '1')
+            return 'SI';
+        elseif($data->financiado == '3')
+            return 'PARCIAL';
+        else return 'NO';
     }
+
     /**
      * 
      * @param Proyecto $data

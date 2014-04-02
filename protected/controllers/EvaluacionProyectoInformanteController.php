@@ -30,7 +30,7 @@ class EvaluacionProyectoInformanteController extends Controller {
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$ALUMNO, Rol::$ADMINISTRADOR, Rol::$PROFESOR),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('create', 'update', 'createYRevision', 'updateYRevision'),
+                'actions' => array('create', 'update', 'createYRevision', 'updateYRevision','clonar'),
                 'roles' => array(Rol::$SUPER_USUARIO, Rol::$ADMINISTRADOR, Rol::$PROFESOR),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -51,6 +51,27 @@ class EvaluacionProyectoInformanteController extends Controller {
         $this->renderPartial('view', array(
             'model' => $this->loadModel($id),
                 ), false, true);
+    }
+
+    public function actionClonar($id_alumno_destino, $id_evaluacion) {
+        $modelOriginal = EvaluacionProyectoInformante::model()->findByPk($id_evaluacion);
+        if (isset($modelOriginal)) {
+            //proceso de clonado
+            $modelNuevo = new EvaluacionProyectoInformante;
+            $modelNuevo->attributes = $modelOriginal->attributes;
+            $modelNuevo->id_alumno = $id_alumno_destino;
+            $modelNuevo->isNewRecord = TRUE;
+            $modelNuevo->id_evaluacion_proyecto_informante = NULL;
+            $modelNuevo->id_evaluacion_proyecto_informante_padre = NULL;
+            if ($modelNuevo->save()) {
+                Yii::app()->user->setFlash('success', "Evaluación clonada correctamente ");
+            } else {
+                Yii::app()->user->setFlash('error', "La evaluación no puede ser clonada");
+            }
+        } else {
+            Yii::app()->user->setFlash('error', "La evaluación no puede ser clonada");
+        }
+        $this->redirect(array('proyecto/view', 'id' => $modelOriginal->id_proyecto));
     }
 
     public function actionVerPDF($id) {
@@ -81,8 +102,8 @@ class EvaluacionProyectoInformanteController extends Controller {
         if ($modelProyecto != NULL && ($modelProyecto->estado_actual == Estado::$PROYECTO_EN_DESARROLLO || Yii::app()->user->checkeaAccesoMasivo(array(Rol::$ADMINISTRADOR, Rol::$SUPER_USUARIO)))) {
             if (isset($_POST['EvaluacionProyectoInformante'])) {
                 $model->attributes = $_POST['EvaluacionProyectoInformante'];
-                $model->estado=  Estado::$EVALUACION_PENDIENTE_DE_ENVIO;
-                
+                $model->estado = Estado::$EVALUACION_PENDIENTE_DE_ENVIO;
+
                 if ($model->save()) {
                     Yii::app()->user->setFlash('success', "Evaluación guardada correctamente");
                     $this->redirect(array('proyecto/view', 'id' => $model->id_proyecto));
@@ -107,7 +128,7 @@ class EvaluacionProyectoInformanteController extends Controller {
         if ($modelProyecto != NULL && ($modelProyecto->estado_actual == Estado::$PROYECTO_EN_DESARROLLO || Yii::app()->user->checkeaAccesoMasivo(array(Rol::$ADMINISTRADOR, Rol::$SUPER_USUARIO)))) {
             if (isset($_POST['EvaluacionProyectoInformante'])) {
                 $model->attributes = $_POST['EvaluacionProyectoInformante'];
-                $model->estado=  Estado::$EVALUACION_ENVIADA;
+                $model->estado = Estado::$EVALUACION_ENVIADA;
                 if ($model->evaluacionCompleta()) {
                     if ($model->save()) {
                         Yii::app()->user->setFlash('success', "Evaluación guardada correctamente");
@@ -132,8 +153,7 @@ class EvaluacionProyectoInformanteController extends Controller {
         if (isset($_GET['EvaluacionProyectoInformante'])) {
             $model->attributes = $_GET['EvaluacionProyectoInformante'];
             echo $model->obtienePromedio();
-        }
-        else
+        } else
             echo "0";
     }
 
@@ -179,7 +199,7 @@ class EvaluacionProyectoInformanteController extends Controller {
                 //  $this->performAjaxValidation($model);
                 if (isset($_POST['EvaluacionProyectoInformante'])) {
                     $model->attributes = $_POST['EvaluacionProyectoInformante'];
-                    $model->estado=  Estado::$EVALUACION_ENVIADA;
+                    $model->estado = Estado::$EVALUACION_ENVIADA;
                     if ($model->evaluacionCompleta()) {
                         if ($model->save()) {
                             Yii::app()->user->setFlash('success', "Evaluación guardada correctamente");
